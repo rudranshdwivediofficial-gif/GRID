@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="background:#0f172a; color:#f8fafc; font-family:sans-serif; margin:20px;">
+  <div id="setup" style="max-width:400px; margin:auto;">
+    <h2>GRID Chat</h2>
+    <input id="pwd" type="password" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+    <button onclick="ws.send(JSON.stringify({type:'create', password:document.getElementById('pwd').value}))">Create</button>
+    <button onclick="ws.send(JSON.stringify({type:'join', id:location.hash.substring(1), password:document.getElementById('pwd').value}))">Join</button>
+  </div>
+  <div id="chat" style="display:none; max-width:400px; margin:auto;">
+    <div id="msgs" style="height:300px; overflow-y:auto; background:#1e293b; padding:10px; margin-bottom:10px;"></div>
+    <input id="in" style="width:70%; padding:10px;"><button onclick="ws.send(JSON.stringify({type:'chat', text:document.getElementById('in').value})); document.getElementById('in').value=''">Send</button>
+  </div>
+  <script>
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${protocol}://${location.host}`);
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if(msg.type === 'joined') {
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('chat').style.display = 'block';
+        if(!location.hash) location.hash = msg.id;
+      }
+      if(msg.type === 'chat') document.getElementById('msgs').innerHTML += `<div>${msg.text}</div>`;
+      if(msg.type === 'error') alert(msg.message);
+    };
+  </script>
+</body>
+</html>
